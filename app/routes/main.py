@@ -3,7 +3,7 @@ from app.models.user import LoginPayLoad
 from pydantic import ValidationError
 from app import db
 from bson import ObjectId
-
+from app.models.product import ProductDBModel
 main_bp = Blueprint("main_bp", __name__)
 
 
@@ -33,11 +33,10 @@ def login():
 @main_bp.route("/products")
 def get_products():
     products_cursor = db.products.find({})
-    products_list = []
-    for products in products_cursor:
-        products['_id'] = str(products['_id'])
-        products_list.append(products)
-
+    products_list = [
+        ProductDBModel(**product).model_dump(by_alias=True, exclude_none=True)
+        for product in products_cursor
+    ]
     return jsonify(products_list)
 
 
@@ -52,25 +51,19 @@ def create_products():
 def get_product_by_id(product_id):
     try:
         oid = ObjectId(product_id)
-
     except Exception as e:
-            return jsonify(
-            {
-                "error": f"Erro ao transformar o {product_id} em ObjectID: {e}"
-            }
+        return jsonify(
+            {"error": f"Erro ao transformar o {product_id} em ObjectID: {e}"}
         ), 400
 
     product = db.products.find_one({'_id': oid})
 
     if product:
-        product['_id'] = str(product['_id'])
-        return jsonify(product)
-    else:
-        return jsonify(
-            {
-                "Erro": f"Erro ao encontrar produto id {product_id}"
-            }
-        )
+        product_dict = ProductDBModel(**product).model_dump(by_alias=True, exclude_none=True)
+        return jsonify(product_dict)
+    return jsonify(
+        {"Erro": f"Erro ao encontrar produto id {product_id}"}
+    ), 404
 
 
 # RF: O Sistema deve permitir a atualização de um unico produto e o produto existente
