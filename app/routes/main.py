@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
+from app.models.user import LoginPayLoad
+from pydantic import ValidationError
 
 main_bp = Blueprint("main_bp", __name__)
 
@@ -6,7 +8,23 @@ main_bp = Blueprint("main_bp", __name__)
 # RF: O sistema deve permitir que um usuario se autentique para obter um token
 @main_bp.route("/login", methods=["POST"])
 def login():
-    return jsonify({"mensagem": "Realizar um login"})
+    try:
+        raw_data = request.get_json()
+        user_data = LoginPayLoad(**raw_data)
+    except ValidationError as e:
+        return jsonify({"error": e.errors()}), 400
+    except Exception as e:
+        return jsonify({"error": "Erro durante a requisição de dados"}), 500
+        
+
+    if user_data.username == "admin" and user_data.password == "123":
+        return jsonify({"message": "Login bem-sucedido"})
+    else:
+        return jsonify({"message": "Credenciais inválidas"})
+
+
+        
+    
 
 
 # RF: O Sistema deve permitir listagem de produtos
