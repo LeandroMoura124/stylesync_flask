@@ -14,7 +14,7 @@ def token_required(f):
             except IndexError:
                 return jsonify({"mensagem":"Token Malformado"})
         if not token:
-            return jsonify({"mensagem":"Token não encontrado"}), 401
+            return jsonify({"mensagem":"Obrigatório informar token"}), 401
         
         try:
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
