@@ -3,7 +3,7 @@ from app.models.user import LoginPayLoad
 from pydantic import ValidationError
 from app import db
 from bson import ObjectId
-from app.models.product import Product, ProductDBModel
+from app.models.product import Product, ProductDBModel, UpdateProduct
 from app.decorators import token_required
 from datetime import datetime, timedelta, timezone
 import jwt
@@ -89,19 +89,47 @@ def get_product_by_id(product_id):
 
 
 # RF: O Sistema deve permitir a atualização de um unico produto e o produto existente
-@main_bp.route("/product/<int:product_id>", methods=["PUT"])
-def update_product(product_id):
+@main_bp.route("/product/<string:product_id>", methods=["PUT"])
+@token_required
+def update_product(token, product_id):
+    try:
+        oid = ObjectId(product_id)
+        update_data = UpdateProduct(**request.get_json())
+    except ValidationError as e:
+        return jsonify({"error": e.errors()})
+    
+    update_result = db.products.update_one(
+        {
+            "_id": oid
+        },
+        {
+            "$set": update_data.model_dump(exclude_unset=True)
+        }
+    )
+    if update_result.matched_count == 0:
+        return jsonify({"error": "Produto não encontrado"}), 404
+    
+    update_product = db.products.find_one({"_id": oid})
     return jsonify(
-        {"mensagem": f"Esta é a rota de atualização do produto com o id {product_id}"}
+        ProductDBModel(**update_product).model_dump(by_alias=True, exclude=None)
     )
 
 
 # RF: O sistema deve permitir a delecao de um unico produto e produto existente
-@main_bp.route("/product/<int:product_id>", methods=["DELETE"])
-def delete_product(product_id):
-    return jsonify(
-        {"mensagem": f"Esta é a rota de deleção do produto com o id {product_id}"}
-    )
+@main_bp.route("/product/<string:product_id>", methods=["DELETE"])
+@token_required
+def delete_product(token, product_id):
+    try:
+        oid = ObjectId(product_id)
+    except Exception:
+        return jsonify({"error: id do produto inválido"}), 400
+    
+    delect_product = db.products.delete_one({"_id": oid})
+    
+    if delect_product.deleted_count == 0:
+        return jsonify({"error": "Produto não foi encontrado"}), 404
+        
+    return " ", 204
 
 
 # RF: O sistema deve permitir a importação de vendas atráves de um arquivo (csv)

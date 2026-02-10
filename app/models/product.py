@@ -22,3 +22,11 @@ class ProductDBModel(Product):
             if key in data:
                 data[key] = str(data[key])
         return data
+
+
+class UpdateProduct(BaseModel):
+    name: Optional[str] = None
+    price: Optional[float] = None
+    description: Optional[str] = None
+    stock: Optional[int] = None
+
