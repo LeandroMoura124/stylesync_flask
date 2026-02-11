@@ -15,12 +15,10 @@ class Product(BaseModel):
     )
 
 class ProductDBModel(Product):
-    def model_dump(self, *, mode = 'python', include = None, exclude = None, context = None, by_alias: bool | None = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False, exclude_computed_fields: bool = False, round_trip: bool = False, warnings: bool = True, fallback = None, serialize_as_any: bool = False) -> dict[str, None]:
-        data = super().model_dump(mode=mode, include=include, exclude=exclude, context=context, by_alias=by_alias, exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, exclude_none=exclude_none, exclude_computed_fields=exclude_computed_fields, round_trip=round_trip, warnings=warnings, fallback=fallback, serialize_as_any=serialize_as_any)
+    def model_dump(self, by_alias: bool = False, exclude: Optional[set] = None):
+        data = super().model_dump(by_alias=by_alias, exclude=exclude)
         if self.id:
-            key = '_id' if by_alias else 'id'
-            if key in data:
-                data[key] = str(data[key])
+            data['_id'] = str(self.id)
         return data
 
 

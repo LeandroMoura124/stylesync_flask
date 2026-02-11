@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Resultado do Upload</h1>
+
+    {% if vendas_importadas > 0 %}
+        <div class="alert alert-success">
+            {{ vendas_importadas }} vendas importadas com sucesso!
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            Nenhuma venda foi importada.
+        </div>
+    {% endif %}
+
+    {% if erros %}
+        <div class="card mt-3">
+            <div class="card-header bg-danger text-white">
+                Erros encontrados
+            </div>
+            <div class="card-body">
+                <ul>
+                    {% for erro in erros %}
+                        <li>{{ erro }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+
+    <a href="{{ url_for('main_bp.upload_sales_page') }}" class="btn btn-primary mt-3">
+        Voltar para Upload
+    </a>
+</div>
+{% endblock %}
